@@ -56,6 +56,14 @@ ggplot(data = mpg) +
     facet_grid(rows = vars(class), vars(trans))
 ```
 
+
+```{r}
+##from redoing in class was able to get it using the ~
+ggplot(data = mpg,  aes(x = displ, y = hwy)) +
+  geom_point() +
+  facet_grid(class ~ trans)
+```
+
 **Question 4**
 
 * Create a scatter plot for the variables `cty` (x-axis) and `hwy` (y-axis) from the `mpg` dataset.
