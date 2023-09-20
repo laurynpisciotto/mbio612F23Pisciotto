@@ -165,8 +165,8 @@ sizeMass
 ggplot(sizeMass, aes(size, mass)) +
       geom_point() +
       geom_smooth(method = "lm", color = "red", se = FALSE) +
-      xlim(c(0,1000)) +
-      ylim(c(0,1000))
+      xlim(c(0,750)) +
+      ylim(c(0,750))
 
 size_log10 <- log10(size)
 mass_log10 <- log(mass)
