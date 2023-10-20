@@ -31,6 +31,7 @@ Check your dataset for any outliers.
 
 
 ```{r}
+set.seed(42)
 boxplot(algalDensity ~ Location, data = dfLoc, main = "Algal Density", 
         xlab = "Location", ylab = "Algal Density")
 
@@ -61,8 +62,9 @@ Plot a Kernel Density Estimation (geom_density plot) to visualize the distributi
 library(ggplot2)
 
 ggplot(dfLoc, aes(x = algalDensity, fill = locations))+
-  geom_density(alpha = 0.5) +
-  labs(title = "Algal Density Estimation", x = "Algal Density", y = "Density") 
+  geom_density(alpha = 0.5, adjust=3) +
+  labs(title = "Algal Density Estimation", x = "Algal Density", y = "Density") +
+  xlim(100,325)
 ```
 
 ### Q3: Binomial Distribution
@@ -154,8 +156,9 @@ data <- data.frame(
 
 
 ggplot(data, aes(x = Value, fill = Group)) +
-  geom_density(alpha = 0.5) +
-  labs(title = "Density Plot Comparison", x = "Value", y = "Density") 
+  geom_density(alpha = 0.5, adjust = 2) +
+  labs(title = "Density Plot Comparison", x = "Value", y = "Density")  +
+  xlim(0,100)
 
 ```
 
