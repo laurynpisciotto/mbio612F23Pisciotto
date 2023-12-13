@@ -1,0 +1,301 @@
+
+---
+######Example Code Final Project
+#Original code file
+---
+
+# -------------------------------------------------------------------------
+####1a: Uploading all the sheets
+```{r}
+library(readxl)
+library(dplyr)
+library(magrittr)
+library(knitr)
+file_path <- '/Users/'
+T0_list <- list()
+sheet_names <- c('SABD0000000003, Ch 2', 'SABD0000000003, Ch 3', 'SABD0000000003, Ch 4',
+                 'SABD0000000003, Ch 5', 'SABD0000000003, Ch 6', 'SABD0000000003, Ch 7',
+                 'SABD0000000003, Ch 8', 'SABD0000000003, Ch 9', 'SABD0000000003, Ch 10')
+
+for (sheet_name in sheet_names) {
+  df <- read_excel(file_path, sheet = sheet_name)
+  T0_list[[sheet_name]] <- df
+}
+for (i in 1:length(sheet_names)) {
+  assign(paste0("ch", i + 1), T0_list[[sheet_names[i]]], envir = .GlobalEnv)
+}
+```
+
+# -------------------------------------------------------------------------
+####2a: Renaming the third column
+```{r}
+T0_list <- list(ch2, ch3, ch4, ch5, ch6, ch7, ch8, ch9, ch10)
+for (i in 1:length(T0_list)) {
+  names(T0_list[[i]])[3] <- "Delta_Time"
+}
+T0_list
+```
+
+# -------------------------------------------------------------------------
+####3a: Adding in another column for the different channels
+```{r}
+for (i in 1:length(T0_list)) {
+  channel_name <- paste0("channel_", i + 1)
+  T0_list[[i]]$Channel <- as.factor(channel_name)
+}
+```
+
+# -------------------------------------------------------------------------
+####4a: Merging all the data sheets together into one dataframe
+```{r}
+combined_df <- T0_list[[1]]
+for (i in 2:length(T0_list)) {
+  combined_df <- merge(combined_df, T0_list[[i]], all = TRUE)
+}
+```
+
+# -------------------------------------------------------------------------
+####5a: Showing only selected columns of data
+```{r}
+selected_columns <- combined_df %>%
+  select(Delta_Time, Oxygen, Temperature, Channel)
+
+```
+
+# -------------------------------------------------------------------------
+####6a: Plotting at entire time interval
+```{r}
+library(dplyr)
+start_time <- 0.0
+end_time <- 61
+selected_data <- selected_columns[selected_columns$Delta_Time >= start_time & selected_columns$Delta_Time <= end_time, ]
+selected_data <- na.omit(selected_data)
+
+library(ggplot2)
+ggplot(selected_data, aes(x = Delta_Time, y = Oxygen, color = Channel)) +
+  geom_point() +
+  labs(title = "T0 Run X Oxygen vs. Time (Full Time)",
+       x = "Time (Minutes)",
+       y = "Oxygen") +
+  theme_minimal()
+```
+
+# -------------------------------------------------------------------------
+####7a: Choosing data based on specific time range (5-15 Minutes) 
+##Double check with graph of full run time to see if we need to use 10-20
+```{r}
+library(dplyr)
+start_time <- 5.0
+end_time <- 15.0
+selected_data <- selected_columns[selected_columns$Delta_Time >= start_time & selected_columns$Delta_Time <= end_time, ]
+selected_data <- na.omit(selected_data)
+
+library(ggplot2)
+ggplot(selected_data, aes(x = Delta_Time, y = Oxygen, color = Channel, group = Channel)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "black") + 
+  labs(title = "T0 Run X Oxygen vs. Time 5-15 Minutes",
+       x = "Time (Minutes)",
+       y = "Oxygen") +
+  theme_minimal()
+```
+
+# -------------------------------------------------------------------------
+####8a: Making a table for the slopes and finding the slope difference
+####Also adding in the intercept, avg temps
+```{r}
+lm_models <- lapply(split(selected_data, selected_data$Channel), function(sub_data) {
+  model <- lm(Oxygen ~ Delta_Time, data = sub_data)
+  coefficients <- coef(model)
+  data.frame(
+    Channel = unique(sub_data$Channel),
+    Slope = coefficients[2],
+    Intercept = coefficients[1]
+  )
+})
+
+slope_table_light <- do.call(rbind, lm_models)
+
+slope_channel_5 <- slope_table_light$Slope[slope_table_light$Channel == "channel_5"]
+intercept_channel_5 <- slope_table_light$Intercept[slope_table_light$Channel == "channel_5"]
+
+slope_table_light$Light_Slope_Difference <- slope_table_light$Slope - slope_channel_5
+
+
+Light_average_temp <- selected_data %>%
+  group_by(Channel) %>%
+  summarize(Light_Avg_Temperature = mean(Temperature, na.rm = TRUE))
+
+Light_average_temp
+
+slope_table_light <- merge(slope_table_light, Light_average_temp, by = "Channel", all.x = TRUE)
+
+print(slope_table_light)
+
+```
+# ----------------------------------------------------------------------------------------------------------------------------
+####1b: Repeat for dark runs
+```{r}
+library(readxl)
+file_path <- '/Users/'
+T0_list <- list()
+sheet_names <- c('SABD0000000003, Ch 2', 'SABD0000000003, Ch 3', 'SABD0000000003, Ch 4',
+                 'SABD0000000003, Ch 5', 'SABD0000000003, Ch 6', 'SABD0000000003, Ch 7',
+                 'SABD0000000003, Ch 8', 'SABD0000000003, Ch 9', 'SABD0000000003, Ch 10')
+
+for (sheet_name in sheet_names) {
+  df <- read_excel(file_path, sheet = sheet_name)
+  T0_list[[sheet_name]] <- df
+}
+for (i in 1:length(sheet_names)) {
+  assign(paste0("ch", i + 1), T0_list[[sheet_names[i]]], envir = .GlobalEnv)
+}
+```
+
+# -------------------------------------------------------------------------
+####2b: Renaming the third column
+```{r}
+T0_list <- list(ch2, ch3, ch4, ch5, ch6, ch7, ch8, ch9, ch10)
+for (i in 1:length(T0_list)) {
+  names(T0_list[[i]])[3] <- "Delta_Time"
+}
+T0_list
+```
+
+# -------------------------------------------------------------------------
+####3b: Adding in another column for the different channels
+```{r}
+for (i in 1:length(T0_list)) {
+  channel_name <- paste0("channel_", i + 1)
+  T0_list[[i]]$Channel <- as.factor(channel_name)
+}
+```
+
+# -------------------------------------------------------------------------
+####4b: Merging all the data sheets together into one dataframe
+```{r}
+combined_df <- T0_list[[1]]
+for (i in 2:length(T0_list)) {
+  combined_df <- merge(combined_df, T0_list[[i]], all = TRUE)
+}
+```
+
+# -------------------------------------------------------------------------
+####5b: Showing only selected columns of data
+```{r}
+selected_columns <- combined_df %>%
+  select(Delta_Time, Oxygen, Temperature, Channel)
+```
+
+# -------------------------------------------------------------------------
+####6b: Plotting at entire time interval
+```{r}
+library(dplyr)
+start_time <- 0.0
+end_time <- 61
+selected_data <- selected_columns[selected_columns$Delta_Time >= start_time & selected_columns$Delta_Time <= end_time, ]
+selected_data <- na.omit(selected_data)
+
+library(ggplot2)
+ggplot(selected_data, aes(x = Delta_Time, y = Oxygen, color = Channel)) +
+  geom_point() +
+  labs(title = "T0 Run X Oxygen vs. Time (Full Time)",
+       x = "Time (Minutes)",
+       y = "Oxygen") +
+  theme_minimal()
+```
+
+# -------------------------------------------------------------------------
+####7b: Choosing data based on specific time range (5-15 Minutes) 
+##Double check with graph of full run time to see if we need to use 10-20
+```{r}
+library(dplyr)
+start_time <- 5.0
+end_time <- 15.0
+selected_data <- selected_columns[selected_columns$Delta_Time >= start_time & selected_columns$Delta_Time <= end_time, ]
+selected_data <- na.omit(selected_data)
+
+library(ggplot2)
+ggplot(selected_data, aes(x = Delta_Time, y = Oxygen, color = Channel, group = Channel)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "black") + 
+  labs(title = "T0 Run X Oxygen vs. Time 5-15 Minutes",
+       x = "Time (Minutes)",
+       y = "Oxygen") +
+  theme_minimal()
+```
+
+# -------------------------------------------------------------------------
+####8b: Making a table for the slopes and finding the slope difference
+####Also adding in the intercept
+```{r}
+lm_models <- lapply(split(selected_data, selected_data$Channel), function(sub_data) {
+  model <- lm(Oxygen ~ Delta_Time, data = sub_data)
+  coefficients <- coef(model)
+  data.frame(
+    Channel = unique(sub_data$Channel),
+    Slope = coefficients[2],
+    Intercept = coefficients[1]
+  )
+})
+
+slope_table_dark <- do.call(rbind, lm_models)
+
+# Calculate the slope and intercept differences
+slope_channel_5 <- slope_table_dark$Slope[slope_table_dark$Channel == "channel_5"]
+intercept_channel_5 <- slope_table_dark$Intercept[slope_table_dark$Channel == "channel_5"]
+
+slope_table_dark$Dark_Slope_Difference <- slope_table_dark$Slope - slope_channel_5
+
+Dark_average_temp <- selected_data %>%
+  group_by(Channel) %>%
+  summarize(Dark_Avg_Temperature = mean(Temperature, na.rm = TRUE))
+
+Dark_average_temp
+
+slope_table_dark <- merge(slope_table_dark, Dark_average_temp, by = "Channel", all.x = TRUE)
+
+print(slope_table_dark)
+
+```
+# -------------------------------------------------------------------------------------------------------------------------------
+####9: Merging the two slope tables together & Light slope diff - Dark slope diff = Net Environmental Production (NEP)
+```{r}
+merged_slope_table <- merge(slope_table_light, slope_table_dark, by = "Channel", suffixes = c("_Light", "_Dark"))
+
+merged_slope_table$NEP <- merged_slope_table$Light_Slope_Difference - merged_slope_table$Dark_Slope_Difference
+
+merged_slope_table <- merged_slope_table %>%
+  arrange(as.numeric(gsub("channel_", "", Channel)))
+
+print(merged_slope_table)
+
+```
+# -------------------------------------------------------------------------
+####10: adding in a frag ID column to correspond with channel name
+##Must change for each run---this one is M.cap for T0
+```{r}
+library(readxl)
+library(dplyr)
+
+excel_file_path <- '/Users/'
+
+sheet_name <- 'Run1'
+frag_ids <- read_excel(excel_file_path, sheet = sheet_name)
+
+frag_ids <- frag_ids[, c("Channel", "Frag_ID")]
+
+merged_slope_table <- merge(merged_slope_table, frag_ids, by = "Channel", all.x = TRUE)
+
+merged_slope_table <- merged_slope_table %>%
+  arrange(as.numeric(gsub("channel_", "", Channel)))
+
+print(merged_slope_table)
+
+```
+# -------------------------------------------------------------------------
+####11:Exporting the final table
+```{r}
+write.csv(merged_slope_table, file = '/Users/', row.names = FALSE)
+```
+
