@@ -11,6 +11,7 @@ library(readxl)
 library(dplyr)
 library(magrittr)
 library(knitr)
+##add in specific file path here
 file_path <- '/Users/'
 T0_list <- list()
 sheet_names <- c('SABD0000000003, Ch 2', 'SABD0000000003, Ch 3', 'SABD0000000003, Ch 4',
@@ -78,6 +79,7 @@ ggplot(selected_data, aes(x = Delta_Time, y = Oxygen, color = Channel)) +
        x = "Time (Minutes)",
        y = "Oxygen") +
   theme_minimal()
+###change title if needed
 ```
 
 # -------------------------------------------------------------------------
@@ -98,6 +100,7 @@ ggplot(selected_data, aes(x = Delta_Time, y = Oxygen, color = Channel, group = C
        x = "Time (Minutes)",
        y = "Oxygen") +
   theme_minimal()
+###change title if needed
 ```
 
 # -------------------------------------------------------------------------
@@ -137,6 +140,7 @@ print(slope_table_light)
 ####1b: Repeat for dark runs
 ```{r}
 library(readxl)
+##add in specific file path here
 file_path <- '/Users/'
 T0_list <- list()
 sheet_names <- c('SABD0000000003, Ch 2', 'SABD0000000003, Ch 3', 'SABD0000000003, Ch 4',
@@ -203,6 +207,7 @@ ggplot(selected_data, aes(x = Delta_Time, y = Oxygen, color = Channel)) +
        x = "Time (Minutes)",
        y = "Oxygen") +
   theme_minimal()
+###change title if needed
 ```
 
 # -------------------------------------------------------------------------
@@ -223,6 +228,7 @@ ggplot(selected_data, aes(x = Delta_Time, y = Oxygen, color = Channel, group = C
        x = "Time (Minutes)",
        y = "Oxygen") +
   theme_minimal()
+###change title if needed
 ```
 
 # -------------------------------------------------------------------------
@@ -277,7 +283,7 @@ print(merged_slope_table)
 ```{r}
 library(readxl)
 library(dplyr)
-
+##add in specific file path here
 excel_file_path <- '/Users/'
 
 sheet_name <- 'Run1'
@@ -296,6 +302,7 @@ print(merged_slope_table)
 # -------------------------------------------------------------------------
 ####11:Exporting the final table
 ```{r}
+##add in specific file path here
 write.csv(merged_slope_table, file = '/Users/', row.names = FALSE)
 ```
 
